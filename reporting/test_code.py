@@ -1,7 +1,7 @@
 import pandas as pd
 from pathlib import Path
 
-class DataLoader():
+class DataLoader:
     def __init__(self,folder_path):
         self.folder = Path(folder_path)
         self.file_path = self.get_file_path()
@@ -28,6 +28,6 @@ class DataLoader():
 
         if drop_cols:
             df.drop(columns=drop_cols,inplace=True)
-            
+        
         return df
 

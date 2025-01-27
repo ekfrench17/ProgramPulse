@@ -5,7 +5,8 @@ setup(
     version = '0.1',
     packages = find_packages(),
     install_requires = [
-        "pandas"
+        "pandas",
+        "pathlib"
     ],
     description = "test package for integrating with google colab",
     author = "Elaine French",
