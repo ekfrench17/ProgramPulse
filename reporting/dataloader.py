@@ -28,6 +28,9 @@ class DataLoader:
 
             if 'Category' in df.columns and len(df['Category'].unique()) > 0:
                 df['source_name'] = source_name
+
+            if self.__needs_row_deletion():
+                df = df.drop(index=0)
             
             dataframes.append(df)
         
@@ -43,3 +46,8 @@ class DataLoader:
             raise FileNotFoundError(f"No .xlsx or .csv files found in folder")
         
         return file_path_list
+    
+    def __needs_row_deletion(self):
+        if 'sbmtl' in self.folder.name:
+            return True
+        return False
