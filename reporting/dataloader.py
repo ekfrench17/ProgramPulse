@@ -4,8 +4,9 @@ from pathlib import Path
 class DataLoader:
     def __init__(self,folder_path):
         self.folder = Path(folder_path)
+        self.df = self.__create_table()
 
-    def create_table(self):
+    def __create_table(self):
         file_paths = self.__get_file_paths()
 
         # Read all files and store them in a list
