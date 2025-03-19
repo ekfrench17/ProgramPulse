@@ -27,9 +27,11 @@ class DataLoader:
             if drop_cols:
                 df.drop(columns=drop_cols,inplace=True)
 
+            # for neighborly data sources
             if 'Category' in df.columns and len(df['Category'].unique()) > 0:
                 df['source_name'] = source_name
 
+            # check for submittable file to delete first row
             if self.__needs_row_deletion():
                 df = df.drop(index=0)
             
