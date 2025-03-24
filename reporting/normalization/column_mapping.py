@@ -15,7 +15,7 @@ column_map = {
     'zip':'Zip Code',
     'postal':'Zip Code',
     'age':'Age',
-    'birth':'DOB'
+    'birth':'Date of birth'
 }
 
 phone_patterns = {
