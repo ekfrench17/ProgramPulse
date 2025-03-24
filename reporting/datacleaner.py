@@ -139,3 +139,7 @@ class DataCleaner:
 
         # If none of the above conditions match, return None
         return None
+    
+    def apply_normalization(self):
+        """ Function to apply normalization mappings to demographic columns """
+        pass
