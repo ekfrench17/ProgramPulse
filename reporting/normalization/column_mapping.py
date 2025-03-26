@@ -14,7 +14,7 @@ column_map = {
     'country':'Country',
     'zip':'Zip Code',
     'postal':'Zip Code',
-    'age':'Age',
+    'review stage':'Review Stage',
     'birth':'Date of birth'
 }
 
