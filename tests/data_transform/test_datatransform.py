@@ -45,8 +45,11 @@ class TestDataTransform:
         assert transformer.df.shape[0] == expected_shape[0], f"Expected {expected_shape} rows, but got {transformer.df.shape}"
         assert transformer.df.shape[1] == expected_shape[1], f"Expected {expected_shape} columns, but got {transformer.df.shape}"
 
-        # Count of awards = 86
-        # Count of payment dates = 85
+        # Expected count of awards = 86
+        assert transformer.df['Individual_Award'].count() == 86
+
+        # Expected count of payment dates = 85
+        assert transformer.df["Payment_Date"].count() == 85
         
     def test_amount_ts(self,sample_wide_data,transformer):
         """Check the total amount in wide and long format match"""
@@ -54,5 +57,6 @@ class TestDataTransform:
         
         expected_value = sample_wide_data["Total_Awards"].sum()
         transformed_value = transformer.df["Individual_Award"].sum()
+
         # total amount should be the same in both formats = $ 314,729.12
         assert math.isclose(transformed_value,expected_value,rel_tol=1e-8), f"Expected total awards sum {expected_value}, but got {transformed_value}"
