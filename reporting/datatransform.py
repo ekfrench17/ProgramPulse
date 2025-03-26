@@ -5,7 +5,7 @@ class DataTransform:
         self.df = df
 
     def transform_sbmtl(self):
-         # Ensure that self.df is set before using method
+        # Ensure that self.df is set before using method
         if not hasattr(self, 'df'):
             raise ValueError("Dataframe (df) not set!")
         
@@ -37,7 +37,9 @@ class DataTransform:
        'Household Income Level', 'Race', 'Ethnicity', 'Gender',
        'Household_Size']]
         
-        long_df = long_df.merge(demographics,left_on="Submission_Id",right_on="Submission Id",how="left")
+        demographics = demographics.rename(columns={'Submission Id':'Submission_Id'})
+        
+        long_df = long_df.merge(demographics,on="Submission_Id",how="left")
 
         self.df = long_df
 

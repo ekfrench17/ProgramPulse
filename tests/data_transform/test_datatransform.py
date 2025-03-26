@@ -40,10 +40,13 @@ class TestDataTransform:
         """Transform the test data using the transform_sbmtl method"""
         transformer = transformer.transform_sbmtl()
 
-        expected_shape = (637, 26)
+        expected_shape = (637, 25)
 
         assert transformer.df.shape[0] == expected_shape[0], f"Expected {expected_shape} rows, but got {transformer.df.shape}"
         assert transformer.df.shape[1] == expected_shape[1], f"Expected {expected_shape} columns, but got {transformer.df.shape}"
+
+        # Count of awards = 86
+        # Count of payment dates = 85
         
     def test_amount_ts(self,sample_wide_data,transformer):
         """Check the total amount in wide and long format match"""
