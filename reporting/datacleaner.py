@@ -1,9 +1,12 @@
 import pandas as pd
 import re
 import numpy as np
-from normalization import (column_mapping, ethnicity_mapping, race_mapping, gender_mapping,
-                            language_mapping, income_mapping)
-
+try:
+    from .normalization import (column_mapping, ethnicity_mapping, race_mapping, gender_mapping,
+                            language_mapping, income_mapping,county_mapping)
+except:
+    from normalization import (column_mapping, ethnicity_mapping, race_mapping, gender_mapping,
+                            language_mapping, income_mapping, county_mapping)
 
 class DataCleaner:
     def __init__(self,df):
@@ -49,9 +52,19 @@ class DataCleaner:
         return self
     
     def clean_household_size(self, column_name="Household_Size", fill_value=2.35):
-        """function to convert Household_Size to integers and fill empty values with the value 2.35"""
-        self.df[column_name] = self.df[column_name].str.strip().replace({'6+': '6'})
-        self.df[column_name] = pd.to_numeric(self.df[column_name], errors='coerce', downcast='integer')
+        """function to convert Household_Size to float and fill empty values with the value 2.35"""
+
+        if column_name not in self.df.columns:
+            return self
+        
+        if(self.df[column_name].dtype == 'O') | (self.df[column_name].dtype == 'str'):
+            self.df[column_name] = self.df[column_name].str.strip().replace({'6+': '6'})
+
+        # Convert the column to float type
+        self.df[column_name] = pd.to_numeric(self.df[column_name], errors='coerce',downcast='float')
+
+        # ensure fill_value is float type
+        fill_value = np.float32(fill_value)
         
         # Replace values greater than 19 with the fill_value (2.35) using boolean indexing
         self.df.loc[self.df[column_name] > 19, column_name] = fill_value
@@ -60,21 +73,37 @@ class DataCleaner:
         return self
     
     def clean_awards_cols(self):
-        awards_cols = [col for col in self.df.columns if "award" in col.lower()]
+        awards_cols = [col for col in self.df.columns if ("award" or "amount") in col.lower()]
+
+        if len(awards_cols)==0:
+            return self
+
         for col in awards_cols:
             self.df[col] = self.df[col].apply(self.__convert_to_float)
         return self
 
     def clean_date_cols(self):
+        def smart_date_parse(date_str):
+            try:
+                return pd.to_datetime(date_str, format='%m/%d/%Y %I:%M')
+            except (ValueError, TypeError):
+                try:
+                    return pd.to_datetime(date_str, format='%m/%d/%Y')
+                except (ValueError, TypeError):
+                    return pd.to_datetime(date_str,errors='coerce')
+
         date_cols = [col for col in self.df.columns if "date" in col.lower()]
         for col in date_cols:
-            # Assuming sbmtl_df is your DataFrame and date_cols[0] is the column name
-            self.df[col] = pd.to_datetime(self.df[col], errors='coerce')
+            # Remove any timezone strings like 'MDT'
+            self.df[col] = self.df[col].astype(str).str.replace(r'\s+\b[A-Z]{2,4}\b$', '', regex=True)
+            
+            # Convert to datetime format
+            self.df[col] = self.df[col].astype(str).apply(smart_date_parse)
 
             # extract only the date part (yyyy-mm-dd):
             self.df[col] = self.df[col].dt.date
         return self
-
+    
     def clean_phone_cols(self):
         def clean_phone(phone_number):
             """Helper function to convert a column from string to phone format
@@ -104,14 +133,18 @@ class DataCleaner:
         
         phone_cols = [col for col in self.df.columns if 'phone' in col.lower()]
         
+        if len(phone_cols) == 0:
+            return self
+
         for col in phone_cols:
             self.df[col] = self.df[col].apply(clean_phone)
         
         return self
 
     def replace_empty_values(self):
-        # Replace '(blank)' with NaN for all columns in the DataFrame
-        self.df.replace('(blank)', np.nan, inplace=True)
+        # Replace '(blank)' and '(No value)' with NaN for all columns in the DataFrame
+        self.df.replace(['(blank)','(No value)'], np.nan, inplace=True)
+
         return self
 
     def __convert_to_float(self,value):
@@ -142,4 +175,29 @@ class DataCleaner:
     
     def apply_normalization(self):
         """ Function to apply normalization mappings to demographic columns """
-        pass
+        if "Gender" in self.df.columns:
+            self.df["Gender"] = self.df["Gender"].astype(str).apply(lambda row: row.lower().strip())
+            self.df["Gender"] = self.df["Gender"].map(gender_mapping)
+
+        if "County" in self.df.columns:
+            self.df["County"] = self.df["County"].astype(str).apply(lambda row: row.strip())
+            self.df["County"] = self.df["County"].apply(lambda x: re.sub("[C|c]ounty","",x).strip() if "county" in x.lower() else x)
+            self.df["County"] = self.df["County"].map(county_mapping) 
+        
+        return self.df
+
+    def clean(self):
+        # Make sure self.df is a DataFrame
+        if not isinstance(self.df, pd.DataFrame):
+            raise ValueError("Expected a DataFrame, got {type(self.data)} instead")
+        
+        self.normalize_column_names()
+        if not isinstance(self.df, pd.DataFrame):
+            raise ValueError("Expected a DataFrame, got {type(self.data)} instead")
+        self.clean_household_size()
+        self.clean_phone_cols()
+        self.clean_awards_cols()
+        self.clean_date_cols()
+        self.apply_normalization()
+
+        return self.df

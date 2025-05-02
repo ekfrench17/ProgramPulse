@@ -6,14 +6,13 @@ class DataFilter:
     def __init__(self,df):
         self.df = df
 
-    def filter_date(self,date_col,start_date,end_date):
+    def filter_date(self,date_col,time_frame):
         """
         Filters the rows of a DataFrame based on a specified date range.
 
         Args:
             date_col (str): The name of the column containing date values.
-            start_date (str or datetime-like): The start date for the filter (inclusive).
-            end_date (str or datetime-like): The end date for the filter (inclusive).
+            time_frame (list of str or datetime-like): The start date for the filter (inclusive), The end date for the filter (inclusive)
 
         Returns:
             pandas.DataFrame: A new DataFrame containing only the rows where the date in
@@ -33,6 +32,9 @@ class DataFilter:
         self.df[date_col] = pd.to_datetime(self.df[date_col])
 
         # convert start and end date strings to datetime
+        start_date = time_frame[0]
+        end_date = time_frame[1]
+
         start_dt = pd.to_datetime(start_date)
         end_dt = pd.to_datetime(end_date)
 

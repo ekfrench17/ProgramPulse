@@ -14,24 +14,41 @@ trans_fem = 'Transgender Female'
 trans_male = 'Transgender Male'
 
 gender_mapping = {
-    'Female ':              female,
-    'Male':                 male,
-    'Prefer not to answer': prefer_no_answer,
-    'Female':               female,
-    'Male ':                male,
-    'Decline to answer ':   prefer_no_answer,
-    'Non-binary ':          non_binary,
-    np.nan:                 np.nan,
-    'Prefiere no responder ':prefer_no_answer,
-    'Transgender Female':    trans_fem,
-    'Femenino ':             female,
-    'Other':                 other,
+    'female':               female,
+    'femall':               female,
+    'femenino':             female,
+    'femenina':             female,
+    'f':                    female,
+    'femenino.':            female,
+    'woman':                female,
+    'mujer':                female,
+
+    'male':                 male,
+    'masculino':            male,
+    'make':                 male,
+    'm':                    male,
+    'he him male':          male,
+    'hombre':               male,
+    'man':                  male,
+    
+
+    'prefer not to answer': prefer_no_answer,
+    'decline to answer':    prefer_no_answer,
+    'prefiere no responder':prefer_no_answer,
+
+    np.nan:                  np.nan,
+    'other':                 other,
+    'non-binary transwoman': other,
     None:                    np.nan,
-    'Masculino ':            male,
-    'Transgender Male':      trans_male,
-    'Transgender Female ':   trans_fem,
-    'Transgender Male ':     trans_male,
-    'No binario ':           non_binary,
-    'Other ':                other,
-    'TransgÃ©nero femenino ':trans_fem
+    
+    'no binario':           non_binary,
+    'non-binary':           non_binary,
+    'non binary':           non_binary,
+    'mtf transgender-nonbinary': non_binary,
+
+    'transgender male':      trans_male,
+    
+    'transgender female':    trans_fem,
+    'transgÃ©nero femenino': trans_fem,
+    
     }
