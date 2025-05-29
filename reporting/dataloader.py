@@ -2,15 +2,38 @@ import pandas as pd
 from pathlib import Path
 import numpy as np
 
+handled = 'handled'
+not_handled = 'not handled'
+
+dialpad_category_map = {
+    # handled categories
+    'forwarded':handled,
+    'incoming':handled,
+    'other':handled,
+    'outgoing':handled,
+    'callback_connected':handled,
+    # not handled categories
+    'abandoned': not_handled,
+    'missed': not_handled,
+    'cancelled':not_handled,
+    'callback_unconnected':not_handled,
+    'callback_cancelled':not_handled
+}
+
 class DataLoader:
-    def __init__(self,folder_path):
+    def __init__(self,folder_path,source):
         self.folder = Path(folder_path)
-        if 'nbly' in self.folder.name.lower() or 'emap' in self.folder.name.lower():
+        if source == 'care_calls':
+            self.df = self.__create_table(source)
+        elif 'nbly' in self.folder.name.lower() or 'emap' in self.folder.name.lower():
             self.df = self.__create_nbly_transaction_frame()
         else:
-            self.df = self.__create_table()
+            self.df = self.__create_table(source)
+            if 'clio' in self.folder.name.lower():
+                if 'Gender*' in self.df.columns:
+                    self.df = self.df.drop(columns="Gender*")
 
-    def __create_table(self):
+    def __create_table(self,source):
         file_path = self.__get_file_paths()
         try:
             if file_path[0].suffix == '.xlsx':
@@ -31,6 +54,10 @@ class DataLoader:
         # check for submittable file to delete first row
         if self.__needs_row_deletion():
             df = df.drop(index=0)
+
+        # check if dialpad file to filter for category
+        if(source.lower() == 'care_calls'):
+            df = self.__load_dialpad_helper(df)
 
         return df
     
@@ -132,4 +159,13 @@ class DataLoader:
         df = df.loc[(df['Type'] == 'Initial Funding') | (df['Type'] == 'Change Order')]
 
         # Return cleaned table of transactions to be merged with other files
+        return df
+    
+    def __load_dialpad_helper(self,df):
+        # only use call center calls
+        df = df.loc[df['target_kind']=='CallCenter']
+
+        # add a column to quickly analyze call outcome
+        df.loc[:,'handle_type'] = df['category'].map(dialpad_category_map)
+
         return df

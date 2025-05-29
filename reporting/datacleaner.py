@@ -68,6 +68,9 @@ class DataCleaner:
         
         # Replace values greater than 19 with the fill_value (2.35) using boolean indexing
         self.df.loc[self.df[column_name] > 19, column_name] = fill_value
+
+        # Replace 0 values with 1.0
+        self.df.loc[self.df[column_name] == 0.0, column_name] = 1.0
         
         self.df[column_name] = self.df[column_name].fillna(fill_value)  # Fill NaN values with 2.35
         return self

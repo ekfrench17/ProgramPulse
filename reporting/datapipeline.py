@@ -25,7 +25,7 @@ class DataPipeline:
             self.award_col = 'Individual_Award'
         elif self.source == 'clio':
             self.date_col = 'Close Date'
-            self.id_col = "Client Id"
+            self.id_col = "Client ID"
         elif self.source =='be':
             self.date_col ='Date_Final'
             self.id_col = 'Contact ID'
@@ -44,12 +44,12 @@ class DataPipeline:
             self.date_col = 'Date entered'
             self.id_col = 'Contact ID'
     
-    def load(self):
+    def load(self,source):
         """Load data to handle multiple file paths"""
         logging.info("Loading data...")
         load_list = []
-        for source in self.data_source:
-            loader = DataLoader(source)
+        for source_path in self.data_source:
+            loader = DataLoader(source_path,source)
             load_list.append(loader)
         if len(load_list) == 1:
             self.data = load_list[0].df
@@ -95,7 +95,7 @@ class DataPipeline:
     def aggregate(self):
         logging.info("Creating unique dataframe...")
         aggregate = DataAggregator(self.data)
-        if self.source == 'hs' or self.source == 'law':
+        if self.source == 'hs' or self.source == 'clio':
             self.data = aggregate.make_unique_no_award(self.id_col)
         else:
             self.data = aggregate.make_unique_with_award(self.id_col,self.award_col)
@@ -107,7 +107,7 @@ class DataPipeline:
             raise ValueError("Expected a DataFrame, got {type(self.data)} instead")
 
     def run_pipeline(self):
-        self.load()
+        self.load(self.source)
         self.clean()
         self.transform()
         self.filter()
