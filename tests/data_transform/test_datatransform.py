@@ -40,7 +40,7 @@ class TestDataTransform:
         """Transform the test data using the transform_sbmtl method"""
         transformer = transformer.transform_sbmtl()
 
-        expected_shape = (637, 25)
+        expected_shape = (637, 28)
 
         assert transformer.df.shape[0] == expected_shape[0], f"Expected {expected_shape} rows, but got {transformer.df.shape}"
         assert transformer.df.shape[1] == expected_shape[1], f"Expected {expected_shape} columns, but got {transformer.df.shape}"

@@ -1,8 +1,9 @@
 import pandas as pd
 
 class DataTransform:
-    def __init__(self,df):
-        self.df = df
+    def __init__(self,data,source=None):
+        self.df = data
+        self.source = source
 
     def transform_sbmtl(self):
         # Ensure that self.df is set before using method
@@ -29,13 +30,14 @@ class DataTransform:
             'Individual_Award': individual_awards_long['Individual_Award'],
         })
 
-        demographics = self.df[['Submission Id', 'Review Stage', 'Full Name',
+        demographics = self.df.drop(columns=awards_columns+date_cols)
+        """demographics = self.df[['Submission Id', 'Review Stage', 'Full Name',
        'First Name', 'Last Name', 'Date of birth', 'Language', 'Email_Primary',
        'Email_Alternate', 'Phone_Primary', 'Phone_Alternate',
        'primary address (address 1)', 'primary address: Address 2', 'City',
        'Region', 'Zip Code', 'Country', 'Apartment or Unit Number',
        'Household Income Level', 'Race', 'Ethnicity', 'Gender',
-       'Household_Size']]
+       'Household_Size']]"""
         
         demographics = demographics.rename(columns={'Submission Id':'Submission_Id'})
         
@@ -44,3 +46,22 @@ class DataTransform:
         self.df = long_df
 
         return self
+    
+    def merge_nbly(self):
+        "Merge the demographics dataframe onto the transactions dataframe"
+        df = self.df[0]
+        demographics_df = self.df[1]
+        self.df = df.merge(demographics_df,on="Case_Id",how="left")
+        return self
+    
+    def transform(self):
+        if self.source == None:
+            pass
+        elif self.source == 'nbly' or self.source =='emap':
+            self.merge_nbly()
+        elif self.source == 'sbmtl':
+            self.transform_sbmtl()
+        else:
+            pass
+        
+        return self.df
