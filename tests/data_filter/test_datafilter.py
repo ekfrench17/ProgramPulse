@@ -17,7 +17,7 @@ def date_filtered_df(filter):
     start_date = "2024-12-01"
     end_date = "2025-01-31"
     date_col = "Payment_Date"
-    return filter.filter_date(date_col,start_date,end_date)
+    return filter.filter_date(date_col,[start_date,end_date])
 
 
 class TestDataFilter:
