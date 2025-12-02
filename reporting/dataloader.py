@@ -52,12 +52,16 @@ class DataLoader:
             df = self.__fix_date_column(df)
 
         # check for submittable file to delete first row
-        if self.__needs_row_deletion():
+        if source == 'sbmtl':
             df = df.drop(index=0)
 
         # check if dialpad file to filter for category
         if(source.lower() == 'care_calls'):
             df = self.__load_dialpad_helper(df)
+        
+        if(source.lower() == 'be'):
+            df = self.__load_be_helper(df)
+
 
         return df
     
@@ -90,7 +94,9 @@ class DataLoader:
         if len(dataframes) == 1:
             return dataframes[0]
         
-        return pd.concat(dataframes,ignore_index=True)
+        combined = pd.concat(dataframes,ignore_index=True)
+        #combined = combined.drop_duplicates()
+        return combined
     
     def __get_file_paths(self):
         file_path_list = [file for file in self.folder.iterdir() 
@@ -99,11 +105,6 @@ class DataLoader:
             raise FileNotFoundError(f"No .xlsx or .csv files found in folder")
         
         return file_path_list
-    
-    def __needs_row_deletion(self):
-        if 'sbmtl' in self.folder.name:
-            return True
-        return False
     
     def __needs_final_date_column(self,df):
         date_entered = [col for col in df.columns if 'date entered' in col.lower()]
@@ -143,7 +144,8 @@ class DataLoader:
                                                 (df['Category'] == 'Legal Services - Administrative '))]"""
         df = df.loc[~((df['Category'] == 'Project Delivery') | 
                   (df['Category'] == 'Legal Services - Fee') |
-                  (df['Category'] == 'Legal Services - Administrative'))]
+                  (df['Category'] == 'Legal Services - Administrative') |
+                  (df['Category'] == 'Housing Counseing'))]
 
         if source_name != None:
             # Add a column for the source (agency) of transactions
@@ -168,4 +170,10 @@ class DataLoader:
         # add a column to quickly analyze call outcome
         df.loc[:,'handle_type'] = df['category'].map(dialpad_category_map)
 
+        return df
+    
+    def __load_be_helper(self,df):
+        # sum benefits and awards columns into one column
+        df = df.replace(['(blank)','(No value)'], np.nan)
+        df["Amount"] = df["Total Back Benefits (Amount)"].astype(float) + df["Annual Forward Benefits Expected"].astype(float)
         return df

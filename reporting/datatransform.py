@@ -51,7 +51,12 @@ class DataTransform:
         "Merge the demographics dataframe onto the transactions dataframe"
         df = self.df[0]
         demographics_df = self.df[1]
+        # Make sure df (transactions) Case_Id column is unique
+        
         self.df = df.merge(demographics_df,on="Case_Id",how="left")
+
+        
+
         return self
     
     def transform(self):

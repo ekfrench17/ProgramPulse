@@ -15,11 +15,15 @@ class DataAggregator:
         else:
             unique_df = self.df[[id_column, award_col]].groupby(id_column).sum(award_col)
 
+        # only keep rows where Award > 0
+        unique_df = unique_df[unique_df[award_col]>0]
+        assert unique_df[award_col].min() > 0
+
         if "Household_Size" in self.df.columns:
             unique_df = unique_df.merge(unique_demo[[id_column,"Household_Size"]],on=id_column,how="left")
 
-        #id_count = self.df[[id_column]].nunique()
-        #unique_rows = unique_df.shape[0]
+        id_count = self.df[[id_column]].nunique()
+        unique_rows = unique_df.shape[0]
 
         #assert id_count == unique_rows,f"Expected {id_count} rows, but got {unique_rows}"
 

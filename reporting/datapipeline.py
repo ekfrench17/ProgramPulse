@@ -9,16 +9,19 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 class DataPipeline:
-    def __init__(self,source,source_path,time_frame=None,filters=None):
+    def __init__(self,source,source_path,time_frame=None,county_list=None,filters=None):
         self.source = source
         self.data_source = source_path
         self.time_frame = time_frame
         self.filters = filters
         self.data = None
+        self.county_list = county_list
         if self.source == 'nbly' or self.source == 'emap':
             self.date_col = 'Date'
             self.id_col = "Case_Id"
             self.award_col = "Amount"
+            if county_list != None:
+                self.county_col = "County"
         elif self.source == 'sbmtl':
             self.date_col = 'Payment_Date'
             self.id_col = 'Submission_Id'
@@ -87,6 +90,8 @@ class DataPipeline:
         filter = DataFilter(self.data)
         if self.time_frame != None:
             self.data = filter.filter_date(self.date_col,self.time_frame)
+        if self.county_list != None:
+            self.data = filter.filter_county(self.county_col,self.county_list)
         if self.filters != None:
             # place holder for demographic filters
             pass

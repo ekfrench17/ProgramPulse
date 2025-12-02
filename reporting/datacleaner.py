@@ -54,14 +54,26 @@ class DataCleaner:
     def clean_household_size(self, column_name="Household_Size", fill_value=2.35):
         """function to convert Household_Size to float and fill empty values with the value 2.35"""
 
+        # For submittable - combine adult & minor columns to get total household size
+        if "Adult Household Members" in self.df.columns:
+            if "Minor Household Members" in self.df.columns:
+                self.df[column_name] = self.df["Adult Household Members"].astype(int) + self.df["Minor Household Members"].astype(int)
+            else:
+                self.df[column_name] = self.df["Adult Household Members"].astype(int) 
+
         if column_name not in self.df.columns:
+            print(f"Column '{column_name}' not found in DataFrame. Skipping cleaning for this column.")
             return self
         
-        if(self.df[column_name].dtype == 'O') | (self.df[column_name].dtype == 'str'):
-            self.df[column_name] = self.df[column_name].str.strip().replace({'6+': '6'})
+        if(self.df[column_name].dtype == 'O') or (self.df[column_name].dtype == 'str'):
+            self.df[column_name] = self.df[column_name].astype(str).str.strip()
+            self.df[column_name] = self.df[column_name].replace({'6+': '6'})
+            # replace non-numeric values with '' such as '/'
+            self.df[column_name] = self.df[column_name].replace(r'[^0-9]', '', regex=True)
 
+        
         # Convert the column to float type
-        self.df[column_name] = pd.to_numeric(self.df[column_name], errors='coerce',downcast='float')
+        self.df[column_name] = pd.to_numeric(self.df[column_name])
 
         # ensure fill_value is float type
         fill_value = np.float32(fill_value)
@@ -86,22 +98,13 @@ class DataCleaner:
         return self
 
     def clean_date_cols(self):
-        def smart_date_parse(date_str):
-            try:
-                return pd.to_datetime(date_str, format='%m/%d/%Y %I:%M')
-            except (ValueError, TypeError):
-                try:
-                    return pd.to_datetime(date_str, format='%m/%d/%Y')
-                except (ValueError, TypeError):
-                    return pd.to_datetime(date_str,errors='coerce')
-
         date_cols = [col for col in self.df.columns if "date" in col.lower()]
         for col in date_cols:
             # Remove any timezone strings like 'MDT'
             self.df[col] = self.df[col].astype(str).str.replace(r'\s+\b[A-Z]{2,4}\b$', '', regex=True)
             
             # Convert to datetime format
-            self.df[col] = self.df[col].astype(str).apply(smart_date_parse)
+            self.df[col] = pd.to_datetime(self.df[col], errors='coerce')
 
             # extract only the date part (yyyy-mm-dd):
             self.df[col] = self.df[col].dt.date
@@ -147,6 +150,7 @@ class DataCleaner:
     def replace_empty_values(self):
         # Replace '(blank)' and '(No value)' with NaN for all columns in the DataFrame
         self.df.replace(['(blank)','(No value)'], np.nan, inplace=True)
+        self.df = self.df.infer_objects(copy=False)
 
         return self
 
@@ -185,8 +189,21 @@ class DataCleaner:
         if "County" in self.df.columns:
             self.df["County"] = self.df["County"].astype(str).apply(lambda row: row.strip())
             self.df["County"] = self.df["County"].apply(lambda x: re.sub("[C|c]ounty","",x).strip() if "county" in x.lower() else x)
-            self.df["County"] = self.df["County"].map(county_mapping) 
+            self.df["County"] = self.df["County"].map(county_mapping)
         
+        if "Race" in self.df.columns:
+            self.df["Race"] = self.df["Race"].astype(str).apply(lambda row: row.strip())
+            self.df["Race"] = self.df["Race"].apply(lambda row: re.sub('\n',' ',row))
+            self.df["Race"] = self.df["Race"].map(race_mapping).fillna(self.df["Race"])
+        
+        if "Ethnicity" in self.df.columns:
+            self.df["Ethnicity"] = self.df["Ethnicity"].astype(str).apply(lambda row: row.strip())  
+            self.df["Ethnicity"] = self.df["Ethnicity"].map(ethnicity_mapping).fillna(self.df["Ethnicity"])
+
+        if "AMI" in self.df.columns:
+            self.df["AMI"] = self.df["AMI"].astype(str).apply(lambda row: row.strip())
+            self.df["AMI"] = self.df["AMI"].map(income_mapping).fillna(self.df["AMI"])
+
         return self.df
 
     def clean(self):
